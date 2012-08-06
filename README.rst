@@ -1,0 +1,2 @@
+Very simple Flask blog.
+
