@@ -3,7 +3,9 @@
 <head>
 <meta http-equiv="content-type" content="text/html; charset=utf-8">
 <link rel="stylesheet" href="/static/master.css" type="text/css" media="screen" charset="utf-8">
+{% block page_head %}
 <title>Vicould's blog</title>
+{% endblock %}
 </head>
 <body>
 <h1><a href="/">Vicould</a></h1>
@@ -16,20 +18,22 @@
   </div>
 </header>
 <div id="page_content">
-  {% for entry in articles  %}
+  {% block page_content %}
+  {% for article in articles  %}
   <article>
-    <h2>{{ entry.title}}</h2>
+    <h2>{{ article.title}}</h2>
     <div class="article_metadata">
-      <time datetime="{{ entry.date_posted }}" pubdate>{{ entry.readable_date }}</time>
-      <div class="entry_category">{{ entry.category }}</div>
+      <time datetime="{{ article.date_posted }}" pubdate>{{ article.readable_date }}</time>
+      <div class="article_category">{{ article.category }}</div>
     </div>
     <div class="article_content_wrapper">
-      <p class="entry_content">
-      {{ entry.content|safe }}
+      <p class="article_content">
+      {{ article.content|safe }}
       </p>
     </div>
   </article>
   {% endfor %}
+  {% endblock %}
 </div>
 <footer>
 </footer>
