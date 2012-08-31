@@ -1,0 +1,30 @@
+{% extends "home.html" %}
+
+{% block extra_title %}Login{% endblock %}
+
+{% block page_content %}
+{% if form_error %}
+<div class="form_message">
+  {{ form_error }}
+</div>
+{% endif %}
+<form action="{{ url_for('login') }}" method="post" accept-charset="utf-8">
+  <div class="field_block">
+    <label for="username" class="form_label">Username</label>
+    <div class="input_container">
+      <input type="text" name="username" class="text_input" value="">
+    </div>
+  </div>
+  <div class="field_block">
+    <label for="password" class="form_label">Password</label>
+    <div class="input_container">
+      <input type="password" name="password" class="text_input" value="">
+    </div>
+  </div>
+  <div class="field_block">
+    <div class="input_container">
+      <input type="submit" value="Login" class="form_button">
+    </div>
+  </div>
+</form>
+{% endblock %}

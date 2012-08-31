@@ -1,0 +1,88 @@
+body, div {
+    margin: 0;
+    padding: 0;
+}
+
+a, a:visited {
+    color: #000;
+    text-decoration: none;
+}
+
+a:hover {
+    color: #008fff;
+}
+
+body * {
+    font-family: Georgia, serif;
+}
+
+#page_container {
+    min-width: 800px;
+    width: 80%;
+    max-width: 1200px;
+    margin: 40px auto 0 auto;
+}
+
+header {
+    float: left;
+    width: 20%;
+}
+
+h1, h2, h3 {
+    margin: 0;
+}
+
+h1 {
+    font-size: 36px;
+}
+
+h1 a, h1 a:visited {
+    color: #008fff;
+    font-family: Verdana, sans-serif;
+}
+
+ul.menu_list {
+    padding: 0;
+    list-style-type: none;
+}
+
+#content {
+    float: right;
+    width: 80%;
+}
+
+.field_block {
+    padding: 10px 20px;
+}
+
+.form_label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 20px;
+}
+
+.form_button {
+    padding: 5px 10px;
+    border: none;
+    background-color: #008fff;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointerr
+}
+
+.input_container {
+    margin-left: 10px;
+}
+
+.input_container input {
+    font-size: 20px;
+}
+
+.text_input {
+    padding: 10px;
+}
+
+.form_message {
+    color: #f00;
+}
+

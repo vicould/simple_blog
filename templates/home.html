@@ -3,40 +3,45 @@
 <head>
 <meta http-equiv="content-type" content="text/html; charset=utf-8">
 <link rel="stylesheet" href="/static/master.css" type="text/css" media="screen" charset="utf-8">
-{% block page_head %}
-<title>Vicould's blog</title>
-{% endblock %}
+<title>{% block extra_title %}Home{% endblock %} || Vicould's blog</title>
+{% block page_head %}{% endblock %}
 </head>
 <body>
-<h1><a href="/">Vicould</a></h1>
-<header>
-  <div id="menu">
-    <ul>
-      <li>Home</li>
-      <li>Categories</li>
-    </ul>
+<div id="page_container">
+  <header>
+    <h1><a href="{{ url_for('list_articles') }}">Vicould</a></h1>
+    <div id="menu">
+      <ul class="menu_list">
+        <li><a href="{{ url_for('list_categories') }}">Categories</a></li>
+        {% if logged_in %}
+        <li><a href="{{ url_for('add_article') }}">Add a new article</a></li>
+        <li><a href="{{ url_for('add_category') }}">Add a new category</a></li>
+        {% endif %}
+      </ul>
+    </div>
+    <div id="about">{{ lipsum(n=1, max=50) }}</div>
+  </header>
+  <div id="content">
+    {% block page_content %}
+    <div class="articles_container">
+      {% for article in articles %}
+      <article class="article_excerpt">
+        <h2><a href="{{ url_for('view_article', article_id=article.id) }}">{{ article.title}}</a></h2>
+        <div class="article_metadata">
+          <time datetime="{{ article.date_posted }}" pubdate>{{ article.readable_date }}</time>
+          <div class="article_category">{{ article.category }}</div>
+        </div>
+        <div class="article_content_wrapper">
+          {{ article.content|safe }}
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+    {% endblock %}
   </div>
-</header>
-<div id="page_content">
-  {% block page_content %}
-  {% for article in articles  %}
-  <article>
-    <h2>{{ article.title}}</h2>
-    <div class="article_metadata">
-      <time datetime="{{ article.date_posted }}" pubdate>{{ article.readable_date }}</time>
-      <div class="article_category">{{ article.category }}</div>
-    </div>
-    <div class="article_content_wrapper">
-      <p class="article_content">
-      {{ article.content|safe }}
-      </p>
-    </div>
-  </article>
-  {% endfor %}
-  {% endblock %}
+  <footer>
+  </footer>
 </div>
-<footer>
-</footer>
 </body>
 </html>
 

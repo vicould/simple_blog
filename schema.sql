@@ -13,3 +13,10 @@ create table articles (
     Foreign Key('cat_name') references categories('name')
 );
 
+drop table if exists authors;
+create table authors (
+	id integer primary key autoincrement,
+	name text not null,
+	hash text not null
+);
+

@@ -12,6 +12,7 @@ from flask import request
 from flask import session
 from flask import url_for
 
+import bcrypt
 from contextlib import closing
 import datetime
 import sqlite3
@@ -22,10 +23,8 @@ from blog_exceptions import DatabaseException
 DATABASE = 'entries.db'
 DEBUG = True
 SECRET_KEY = (
-'\x89?P\xda\xedVW)b\x12\xe2H\xb6\xbal\x9c\x90\xaa\x0f\x1d\xa1c\xc4\x1d'
+'secret mon cul'
 )
-USERNAME = 'admin'
-PASSWORD = 'Admin0812!'
 
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -57,6 +56,12 @@ def teardown_request(exception):
     g.db.close()
 
 
+@app.errorhandler(401)
+def not_authorized(error):
+    """Handles the 401"""
+    return render_template('401.html'), 401
+
+
 @app.errorhandler(404)
 def page_not_found(error):
     """Handles the 404"""
@@ -70,24 +75,74 @@ def list_articles():
             'select title, date_posted, content, cat_name from articles'
             ' order by date_posted'
             )
-    articles = [{
-        'title': row[0],
-        'date_posted': row[1],
-        'readable_date': datetime.datetime.strptime(
-            row[1], '%Y-%m-%d %H:%M:%S'
-            ).strftime('%B %d, %Y'),
-        'content': row[2],
-        'category': row[3]
-        }
-        for row in cursor.fetchall()
-        ]
-    return render_template('home.html', articles=articles)
+    articles = [
+            prepare_article_excerpt(article)
+            for article in cursor.fetchall()
+            ]
+    return render_template(
+            'home.html',
+            articles=articles,
+            logged_in=session.get('logged_in')
+            )
 
 
-def prepare_article_detail(article_instance):
+@app.route('/login/', methods=['GET', 'POST'])
+def login():
+    """View allowing the author to login, and modify the content then"""
+    if session.get('logged_in'):
+        return redirect(url_for('list_articles'))
+    form_error = None
+    if request.method == 'POST':
+        username = request.form.get('username')
+        original_hashed_pass = g.db.execute(
+                'select hash from authors where name = ?',
+                (username,)
+                ).fetchone()
+        if original_hashed_pass:
+            original_hashed_pass = original_hashed_pass[0]
+            password = request.form.get('password')
+            if (bcrypt.hashpw(password, original_hashed_pass) ==
+                    original_hashed_pass):
+                session['logged_in'] = True
+                return redirect(url_for('list_articles'))
+        app.logger.info('bad credentials')
+        form_error = 'Wrong username or password'
+    return render_template(
+            'login.html',
+            form_error=form_error,
+            logged_in=session.get('logged_in')
+            )
+
+
+@app.route('/logout/', methods=['GET'])
+def logout():
+    """Logging out the user"""
+    if session.get('logged_in'):
+        del session['logged_in']
+    return redirect(url_for('list_articles'))
+
+
+def prepare_article_excerpt(article_instance):
+    """
+    Converts a row of the database in a dictionary containing the article
+    details for use as an excerpt in the templates.
+    The article is truncated.
+    """
+    return {
+            'title': article_instance[0],
+            'date_posted': article_instance[1],
+            'readable_date': datetime.datetime.strptime(
+                article_instance[1], '%Y-%m-%d %H:%M:%S'
+                ).strftime('%B %d, %Y'),
+            'content': ' '.join(article_instance[2].split(' ', 50)[:50]),
+            'category': article_instance[3]
+            }
+
+
+def prepare_article_full(article_instance):
     """
     Converts a row of the database in a dictionary containing the articles
-    details for use in the templates
+    details for use in the templates as full article.
     """
     return {
             'title': article_instance[0],
@@ -107,20 +162,20 @@ def save_category(category_name):
     """
     try:
         g.db.execute(
-                'insert into categories (\'name\') values ?',
-                (category_name)
+                'insert into categories (\'name\') values (?)',
+                (category_name,)
                 )
         g.db.commit()
     except sqlite3.IntegrityError:
         error_message = 'Category {} already present in the database'.format(
                 category_name
-        )
+                )
         app.logger.error(error_message)
         raise DatabaseException(error_message)
 
     category_instance = g.db.execute(
-            'select id from categories where name = ?',
-            [category_name]
+            'select name from categories where name = ?',
+            (category_name,)
             ).fetchone()
     if not category_instance:
         # error, the category could not be saved
@@ -140,7 +195,7 @@ def save_article(title, content, category_name):
     """
     category_instance = g.db.execute(
             'select name from categories where name = ?',
-            (category_name)
+            (category_name,)
             ).fetchone()
     if not category_instance:
         # saves the category in the database, raises an exception if there is an
@@ -159,7 +214,7 @@ def save_article(title, content, category_name):
     g.db.commit()
     article_instance = g.db.execute(
             'select id from articles where title = ?',
-            (title)
+            (title,)
             ).fetchone()
     if not article_instance:
         error_message = 'Unable to save the post to the database'
@@ -171,13 +226,13 @@ def save_article(title, content, category_name):
 
 
 
-@app.route('/entry/add/')
+@app.route('/entry/new/', methods=['GET', 'POST'])
 def add_article():
     """View to create a new entry"""
     if not session.get('logged_in'):
         return abort(401)
+    form_errors = {}
     if request.method == 'POST':
-        form_errors = {}
         # goes through the form to create a new entry, after validation
         title = request.form.get('title', None)
         category = request.form.get('category', None)
@@ -195,7 +250,10 @@ def add_article():
             except DatabaseException as exc:
                 flash(exc.message)
 
-    return render_template('article_edition.html', form_errors=form_errors)
+    return render_template('article_edition.html',
+            form_errors=form_errors,
+            logged_in=session.get('logged_in')
+            )
 
 
 @app.route('/entry/<int:article_id>/')
@@ -204,25 +262,29 @@ def view_article(article_id):
     cursor = g.db.execute(
             'select title, date_posted, content, cat_name'
             ' from articles where id = ?',
-            [article_id]
+            (article_id,)
             )
     article = cursor.fetchone()
     if not article:
         # no matching article in the db, 404
         abort(404)
     else:
-        article_detail = prepare_article_detail(article)
-        return render_template('article.html', article=article_detail)
+        article_detail = prepare_article_full(article)
+        return render_template(
+                'article.html',
+                article=article_detail,
+                logged_in=session.get('logged_in')
+                )
 
 
 @app.route('/entry/<int:article_id>/edit/', methods=['POST'])
 def edit_article(article_id):
     """View to edit an article"""
-    if not session['logged_in']:
+    if not session.get('logged_in'):
         abort(401)
     cursor = g.db.execute(
             'select date_posted from articles where id = ?',
-            (article_id)
+            (article_id,)
             )
     article = cursor.fetchone()
     if not article:
@@ -244,19 +306,21 @@ def edit_article(article_id):
                 ' = (?, ?, ?) where id = ?',
                 (title, content, category, article_id)
                 )
+        g.db.commit()
         flash('Article succesfully modified!')
-    article_detail = prepare_article_detail(
+    article_detail = prepare_article_excerpt(
             (title, article[0], content, category)
             )
     return render_template(
             'article_edition.html',
             article=article_detail,
             form_errors=form_errors,
-            editing=True
+            editing=True,
+            logged_in=session.get('logged_in')
             )
 
 
-@app.route('/category/')
+@app.route('/categories/')
 def list_categories():
     """View to list all categories"""
     cursor = g.db.execute(
@@ -265,28 +329,29 @@ def list_categories():
     categories = cursor.fetchall()
     per_category_recent_articles = {
             category[0]: [
-                prepare_article_detail(article)
+                prepare_article_excerpt(article)
                 for article in g.db.execute(
                     'select title, date_posted, content from articles'
                     ' where cat_name = ? order by date_posted',
-                    (category[0])
+                    (category[0],)
                     ).fetchmany(size=2)
                 ]
             for category in categories
             }
     return render_template(
             'categories.html',
-            categories=per_category_recent_articles
+            categories=per_category_recent_articles,
+            logged_in=session.get('logged_in')
             )
 
 
-@app.route('/category/new/')
+@app.route('/categories/new/', methods=['GET', 'POST'])
 def add_category():
     """View to create a new category"""
-    if not session['logged_in']:
+    if not session.get('logged_in'):
         abort(401)
+    form_errors = {}
     if request.method == 'POST':
-        form_errors = {}
         name = request.form.get('name', '')
         if not name:
             form_errors['name'] = 'Please fill the name of the category'
@@ -298,39 +363,42 @@ def add_category():
                 flash(exc.message)
     return render_template(
             'category_edition.html',
-            form_errors=form_errors
+            form_errors=form_errors,
+            logged_in=session.get('logged_in')
             )
 
 
-@app.route('/category/<string:category_name>/')
+@app.route('/categories/<category_name>/')
 def view_category(category_name):
     """View to list all the articles under that category"""
     category_cursor = g.db.execute(
             'select name from categories where name = ?',
-            (category_name)
+            (category_name,)
             )
     if not category_cursor.fetchall():
         abort(404)
     cursor = g.db.execute(
             'select title, date_posted, content from articles'
             ' where cat_name = ? order by date_posted',
-            (category_name)
+            (category_name,)
             )
     articles = [
-            prepare_article_detail(article)
+            prepare_article_excerpt(article)
             for article in cursor.fetchall()
             ]
 
     return render_template(
             'category_articles.html',
-            articles=articles
+            category=category_name,
+            articles=articles,
+            logged_in=session.get('logged_in')
             )
 
 
-@app.route('/category/<string:category_name>/edit/', methods=['POST'])
+@app.route('/categories/<category_name>/edit/', methods=['POST'])
 def edit_category(category_name):
     """View to edit a specific category"""
-    if not session['logged_in']:
+    if not session.get('logged_in'):
         abort(401)
     form_errors = {}
     new_name = request.form.get('name', '')
@@ -342,20 +410,23 @@ def edit_category(category_name):
                 ' where name = ?',
                 (new_name, category_name)
                 )
+        g.db.commit()
         flash('Category modified')
     cursor = g.db.execute(
             'select title, date_posted, content from articles'
             ' where cat_name = ? order by date_posted',
-            (category_name)
+            (category_name,)
             )
     articles = [
-            prepare_article_detail(article)
+            prepare_article_excerpt(article)
             for article in cursor.fetchall()
             ]
     return render_template(
             'category_articles.html',
+            category=category_name,
             articles=articles,
-            form_errors=form_errors
+            form_errors=form_errors,
+            logged_in=session.get('logged_in')
             )
 
 

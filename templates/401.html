@@ -1,0 +1,11 @@
+{% extends "home.html" %}
+
+{% block extra_title %}Oops, 401{% endblock %}
+{% block page_head %}
+<meta http-equiv="REFRESH" content="5;url=/">
+{% endblock %}
+
+{% block page_content %}
+Sorry, not authorized to go there. Going <a href="{{ url_for('list_articles') }}">home</a> in 5 seconds.
+{% endblock %}
+

@@ -1,0 +1,15 @@
+{% extends "home.html" %}
+
+{% block extra_title %}New article{% endblock %}
+{% block page_head %}{% endblock %}
+
+{% block page_content %}
+<form action="" method="post" accept-charset="utf-8">
+  <label for="title">Title</label>
+  <input type="text" name="title" value="">  
+  <label for="content">Content</label>
+  <textarea rows="80" cols="80"></textarea>
+<input type="submit" value="Continue">
+</form>
+{% endblock %}
+

@@ -1,20 +1,17 @@
 {% extends "home.html" %}
 
-{% block page_head %}
-<title>{{ article.title }}</title>
-{% endblock %}
+{% block extra_title %}{{ article.title }}{% endblock %}
+{% block page_head %}{% endblock %}
 
 {% block page_content %}
-<article>
+<article class="full_article">
   <h2>{{ article.title}}</h2>
   <div class="article_metadata">
     <time datetime="{{ article.date_posted }}" pubdate>{{ article.readable_date }}</time>
     <div class="article_category">{{ article.category }}</div>
   </div>
   <div class="article_content_wrapper">
-    <p class="article_content">
     {{ article.content|safe }}
-    </p>
   </div>
 </article>
 {% endblock %}
