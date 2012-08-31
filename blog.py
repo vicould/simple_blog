@@ -226,7 +226,7 @@ def save_article(title, content, category_name):
 
 
 
-@app.route('/entry/new/', methods=['GET', 'POST'])
+@app.route('/entries/new/', methods=['GET', 'POST'])
 def add_article():
     """View to create a new entry"""
     if not session.get('logged_in'):
@@ -250,13 +250,18 @@ def add_article():
             except DatabaseException as exc:
                 flash(exc.message)
 
+    cursor = g.db.execute('select name from categories')
+    categories = []
+    for category_row in cursor.fetchmany():
+        categories.append(category_row[0])
     return render_template('article_edition.html',
             form_errors=form_errors,
+            categories=categories,
             logged_in=session.get('logged_in')
             )
 
 
-@app.route('/entry/<int:article_id>/')
+@app.route('/entries/<int:article_id>/')
 def view_article(article_id):
     """View to read an article"""
     cursor = g.db.execute(
@@ -277,7 +282,7 @@ def view_article(article_id):
                 )
 
 
-@app.route('/entry/<int:article_id>/edit/', methods=['POST'])
+@app.route('/entries/<int:article_id>/edit/', methods=['POST'])
 def edit_article(article_id):
     """View to edit an article"""
     if not session.get('logged_in'):

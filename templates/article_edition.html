@@ -4,12 +4,35 @@
 {% block page_head %}{% endblock %}
 
 {% block page_content %}
+<h2>New article</h2>
 <form action="" method="post" accept-charset="utf-8">
-  <label for="title">Title</label>
-  <input type="text" name="title" value="">  
-  <label for="content">Content</label>
-  <textarea rows="80" cols="80"></textarea>
-<input type="submit" value="Continue">
+  <div class="field_block">
+    <label for="title" class="form_label">Title</label>
+    <div class="input_container">
+      <input type="text" name="title" class="text_input" value="">  
+    </div>
+  </div>
+  <div class="field_block">
+    <label for="content" class="form_label">Content</label>
+    <div class="input_container">
+      <textarea rows="15" cols="50" class="text_input"></textarea>
+    </div>
+  </div>
+  <div class="field_block">
+    <label for="category" class="form_label">Category</label>
+    <div class="input_container">
+      <select name="category"">
+        {% for category in categories %}
+        <option value="{{ category }}">{{ category }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+  <div class="field_block">
+    <div class="input_container">
+      <input type="submit" value="Save" class="form_button">
+    </div>
+  </div>
 </form>
 {% endblock %}
 

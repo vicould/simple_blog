@@ -74,12 +74,22 @@ ul.menu_list {
     margin-left: 10px;
 }
 
-.input_container input {
+input, textarea {
+    border: 1px solid #aaa;
+    font-size: 20px;
+}
+
+select, option {
     font-size: 20px;
 }
 
 .text_input {
     padding: 10px;
+}
+
+textarea {
+    margin: 0;
+    padding: 0;
 }
 
 .form_message {
