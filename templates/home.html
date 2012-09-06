@@ -17,6 +17,7 @@
           {% if logged_in %}
           <li><a href="{{ url_for('add_article') }}" class="dimmed_link">Add a new article</a></li>
           <li><a href="{{ url_for('add_category') }}" class="dimmed_link">Add a new category</a></li>
+          <li><a href="{{ url_for('logout') }}" class="dimmed_link">Log out</a></li>
           {% endif %}
         </ul>
       </div>
