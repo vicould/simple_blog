@@ -72,7 +72,7 @@ def page_not_found(error):
 def list_articles():
     """Basic root view, showing all the articles for the blog"""
     cursor = g.db.execute(
-            'select title, date_posted, content, cat_name from articles'
+            'select id, title, date_posted, content, cat_name from articles'
             ' order by date_posted'
             )
     articles = [
@@ -129,13 +129,14 @@ def prepare_article_excerpt(article_instance):
     The article is truncated.
     """
     return {
-            'title': article_instance[0],
-            'date_posted': article_instance[1],
+            'id': article_instance[0],
+            'title': article_instance[1],
+            'date_posted': article_instance[2],
             'readable_date': datetime.datetime.strptime(
-                article_instance[1], '%Y-%m-%d %H:%M:%S'
+                article_instance[2], '%Y-%m-%d %H:%M:%S'
                 ).strftime('%B %d, %Y'),
-            'content': ' '.join(article_instance[2].split(' ', 50)[:50]),
-            'category': article_instance[3]
+            'content': ' '.join(article_instance[3].split(' ', 30)[:30]),
+            'category': article_instance[4]
             }
 
 
@@ -145,13 +146,14 @@ def prepare_article_full(article_instance):
     details for use in the templates as full article.
     """
     return {
-            'title': article_instance[0],
-            'date_posted': article_instance[1],
+            'id': article_instance[0],
+            'title': article_instance[1],
+            'date_posted': article_instance[2],
             'readable_date': datetime.datetime.strptime(
-                article_instance[1], '%Y-%m-%d %H:%M:%S'
+                article_instance[2], '%Y-%m-%d %H:%M:%S'
                 ).strftime('%B %d, %Y'),
-            'content': article_instance[2],
-            'category': article_instance[3]
+            'content': article_instance[3],
+            'category': article_instance[4]
             }
 
 
@@ -198,8 +200,8 @@ def save_article(title, content, category_name):
             (category_name,)
             ).fetchone()
     if not category_instance:
-        # saves the category in the database, raises an exception if there is an
-        # issue
+        # saves the category in the database, raises an exception if there is
+        # an issue
         save_category(category_name)
 
     date_posted = datetime.datetime.utcnow().strftime(
@@ -232,6 +234,7 @@ def add_article():
     if not session.get('logged_in'):
         return abort(401)
     form_errors = {}
+    article = None
     if request.method == 'POST':
         # goes through the form to create a new entry, after validation
         title = request.form.get('title', None)
@@ -246,17 +249,23 @@ def add_article():
         if not form_errors:
             try:
                 article_id = save_article(title, content, category)
-                return redirect(url_for('view_article', article_id))
+                return redirect(url_for('view_article', article_id=article_id))
             except DatabaseException as exc:
                 flash(exc.message)
+        article = {
+                'title': title,
+                'content': content,
+                'category': category
+                }
 
     cursor = g.db.execute('select name from categories')
     categories = []
     for category_row in cursor.fetchmany():
         categories.append(category_row[0])
     return render_template('article_edition.html',
-            form_errors=form_errors,
+            article=article,
             categories=categories,
+            form_errors=form_errors,
             logged_in=session.get('logged_in')
             )
 
@@ -265,7 +274,7 @@ def add_article():
 def view_article(article_id):
     """View to read an article"""
     cursor = g.db.execute(
-            'select title, date_posted, content, cat_name'
+            'select id, title, date_posted, content, cat_name'
             ' from articles where id = ?',
             (article_id,)
             )
@@ -282,7 +291,7 @@ def view_article(article_id):
                 )
 
 
-@app.route('/entries/<int:article_id>/edit/', methods=['POST'])
+@app.route('/entries/<int:article_id>/edit/', methods=['GET', 'POST'])
 def edit_article(article_id):
     """View to edit an article"""
     if not session.get('logged_in'):
@@ -296,26 +305,37 @@ def edit_article(article_id):
         # no matching article in the db, 404
         abort(404)
     form_errors = {}
-    title = request.form.get('title', None)
-    category = request.form.get('category', None)
-    content = request.form.get('content', None)
-    if not title:
-        form_errors['title'] = 'Please fill the title'
-    if not category:
-        form_errors['category'] = 'Please fill the category'
-    if not content:
-        form_errors['content'] = 'Please write your article!'
-    if not form_errors:
-        g.db.execute(
-                'update articles set (title, content, category)'
-                ' = (?, ?, ?) where id = ?',
-                (title, content, category, article_id)
+    if request.method == 'POST':
+        title = request.form.get('title', None)
+        category = request.form.get('category', None)
+        content = request.form.get('content', None)
+        if not title:
+            form_errors['title'] = 'Please fill the title'
+        if not category:
+            form_errors['category'] = 'Please fill the category'
+        if not content:
+            form_errors['content'] = 'Please write your article!'
+        if not form_errors:
+            g.db.execute(
+                    'update articles set (title, content, category)'
+                    ' = (?, ?, ?) where id = ?',
+                    (title, content, category, article_id)
+                    )
+            g.db.commit()
+            flash('Article succesfully modified!')
+        article_detail = prepare_article_full(
+                (article_id, title, article[0], content, category)
                 )
-        g.db.commit()
-        flash('Article succesfully modified!')
-    article_detail = prepare_article_excerpt(
-            (title, article[0], content, category)
-            )
+    else:
+        cursor = g.db.execute(
+                'select id, title, date_posted, content, cat_name'
+                ' from articles where id = ?',
+                (article_id,)
+                )
+        article = cursor.fetchone()
+        article_detail = prepare_article_full(
+                article
+                )
     return render_template(
             'article_edition.html',
             article=article_detail,
@@ -336,8 +356,8 @@ def list_categories():
             category[0]: [
                 prepare_article_excerpt(article)
                 for article in g.db.execute(
-                    'select title, date_posted, content from articles'
-                    ' where cat_name = ? order by date_posted',
+                    'select id, title, date_posted, content, cat_name'
+                    ' from articles where cat_name = ? order by date_posted',
                     (category[0],)
                     ).fetchmany(size=2)
                 ]
@@ -383,8 +403,8 @@ def view_category(category_name):
     if not category_cursor.fetchall():
         abort(404)
     cursor = g.db.execute(
-            'select title, date_posted, content from articles'
-            ' where cat_name = ? order by date_posted',
+            'select id, title, date_posted, content, cat_name'
+            ' from articles where cat_name = ? order by date_posted',
             (category_name,)
             )
     articles = [
@@ -418,8 +438,8 @@ def edit_category(category_name):
         g.db.commit()
         flash('Category modified')
     cursor = g.db.execute(
-            'select title, date_posted, content from articles'
-            ' where cat_name = ? order by date_posted',
+            'select id, title, date_posted, content, cat_name'
+            ' from articles where cat_name = ? order by date_posted',
             (category_name,)
             )
     articles = [
@@ -437,4 +457,3 @@ def edit_category(category_name):
 
 if __name__ == '__main__':
     app.run()
-

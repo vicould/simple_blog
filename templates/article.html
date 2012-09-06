@@ -5,10 +5,10 @@
 
 {% block page_content %}
 <article class="full_article">
-  <h2>{{ article.title}}</h2>
+  <h2>{{ article.title}} <a href="{{ url_for('view_article', article_id=article.id) }}" title="Permanent link to {{ article.title }}" class="hidden_link">¶</a></h2>
   <div class="article_metadata">
     <time datetime="{{ article.date_posted }}" pubdate>{{ article.readable_date }}</time>
-    <div class="article_category">{{ article.category }}</div>
+    <span class="article_category"><a href="{{ url_for('view_category', category_name=article.category) }}">{{ article.category }}</a></span>
   </div>
   <div class="article_content_wrapper">
     {{ article.content|safe }}
