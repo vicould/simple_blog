@@ -97,6 +97,7 @@ article.grid_element {
     border: 1px solid #777;
     background-color: #eee;
     font-family: Monaco, monospace;
+    overflow: scroll;
 }
 
 .inline_code {
