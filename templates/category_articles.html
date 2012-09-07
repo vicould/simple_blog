@@ -30,6 +30,7 @@
       {{ article.content|safe }}...<a href="{{ url_for('view_article', article_id=article.id) }}" class="visible_link">[Read more]</a>
     </div>
   </article>
+  {{ loop.cycle('', '<div class="flush"></div>')|safe  }}
   {% endfor %}
 </div>
 {% endblock %}

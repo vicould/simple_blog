@@ -83,8 +83,20 @@ article.grid_element {
     padding: 0;
 }
 
+.flush {
+    clear: both;
+}
+
 .articles_container {
     margin-top: 10px;
+}
+
+.code {
+    margin: 5px 0;
+    padding: 10px 5px;
+    border: 1px solid #777;
+    background-color: #eee;
+    font-family: Monaco, monospace;
 }
 
 /* form */
