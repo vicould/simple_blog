@@ -99,6 +99,10 @@ article.grid_element {
     font-family: Monaco, monospace;
 }
 
+.inline_code {
+    font-family: Monaco, monospace;
+}
+
 /* form */
 .field_block {
     padding: 10px 0;
