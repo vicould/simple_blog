@@ -274,9 +274,7 @@ def add_article():
                 }
 
     cursor = g.db.execute('select name from categories')
-    categories = []
-    for category_row in cursor.fetchall():
-        categories.append(category_row[0])
+    categories = [category_row[0] for category_row in cursor.fetchall()]
     return render_template('article_edition.html',
             article=article,
             categories=categories,
@@ -352,9 +350,7 @@ def edit_article(article_id):
                 article
                 )
     cursor = g.db.execute('select name from categories')
-    categories = []
-    for category_row in cursor.fetchall():
-        categories.append(category_row[0])
+    categories = [category_row[0] for category_row in cursor.fetchall()]
     return render_template(
             'article_edition.html',
             article=article_detail,
