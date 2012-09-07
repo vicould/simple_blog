@@ -88,7 +88,7 @@ def list_articles():
     """Basic root view, showing all the articles for the blog"""
     cursor = g.db.execute(
             'select id, title, date_posted, content, cat_name from articles'
-            ' order by date_posted'
+            ' order by date_posted desc'
             )
     articles = [
             prepare_article_excerpt(article)
@@ -373,7 +373,8 @@ def list_categories():
                 prepare_article_excerpt(article)
                 for article in g.db.execute(
                     'select id, title, date_posted, content, cat_name'
-                    ' from articles where cat_name = ? order by date_posted',
+                    ' from articles where cat_name = ?'
+                    ' order by date_posted desc',
                     (category[0],)
                     ).fetchmany(size=2)
                 ]
@@ -420,7 +421,8 @@ def view_category(category_name):
         abort(404)
     cursor = g.db.execute(
             'select id, title, date_posted, content, cat_name'
-            ' from articles where cat_name = ? order by date_posted',
+            ' from articles where cat_name = ? '
+            'order by date_posted desc',
             (category_name,)
             )
     articles = [
