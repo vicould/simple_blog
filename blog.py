@@ -330,12 +330,12 @@ def edit_article(article_id):
             form_errors['content'] = 'Please write your article!'
         if not form_errors:
             g.db.execute(
-                    'update articles set (title, content, category)'
-                    ' = (?, ?, ?) where id = ?',
+                    'update articles set title = ?, content = ?, cat_name = ?'
+                    ' where id = ?',
                     (title, content, category, article_id)
                     )
             g.db.commit()
-            flash('Article succesfully modified!')
+            return redirect(url_for('view_article', article_id=article_id))
         article_detail = prepare_article_full(
                 (article_id, title, article[0], content, category)
                 )
