@@ -1,13 +1,23 @@
 {% extends "home.html" %}
 
 {% block extra_title %}Categories{% endblock %}
-{% block page_head %}{% endblock %}
+{% block page_head %}
+{% if logged_in %}
+<script src="/static/categories_edition.js" type="text/javascript" charset="utf-8"></script>
+{% endif %}
+{% endblock %}
 
 {% block page_content %}
-<div class="categories_list">
+<div id="categories_list">
   {% for category in categories %}
   <div class="category_container">
-    <h2><a href="{{ url_for('view_category', category_name=category) }}">Category {{ category }}</a></h2>
+    <div class="category_title">
+      {% if logged_in %}
+      <h2 id="{{ category }}"><a href="{{ url_for('view_category', category_name=category) }}">Category <span class="category_name">{{ category }}</span></a> <a href="#" title="Edit category name" class="hidden_link category_edition">edit</a></h2>
+      {% else %}
+      <h2><a href="{{ url_for('view_category', category_name=category) }}">Category {{ category }}</a></h2>
+      {% endif %}
+    </div>
     <div class="articles_container">
       {% for article in categories[category] %}
       <article class="article_excerpt grid_element">

@@ -15,6 +15,7 @@ from flask import url_for
 import bcrypt
 from contextlib import closing
 import datetime
+import json
 import sqlite3
 
 from blog_exceptions import DatabaseException
@@ -59,13 +60,27 @@ def teardown_request(exception):
 @app.errorhandler(401)
 def not_authorized(error):
     """Handles the 401"""
-    return render_template('401.html'), 401
+    return (
+            render_template(
+                '401.html',
+                error=error,
+                logged_in=session.get('logged_in')
+                ),
+            401
+            )
 
 
 @app.errorhandler(404)
 def page_not_found(error):
     """Handles the 404"""
-    return render_template('404.html', error=error), 404
+    return (
+            render_template(
+                '404.html',
+                error=error,
+                logged_in=session.get('logged_in')
+                ),
+            404
+            )
 
 
 @app.route('/')
@@ -427,32 +442,43 @@ def edit_category(category_name):
         abort(401)
     form_errors = {}
     new_name = request.form.get('name', '')
-    if not new_name:
+    if new_name == '':
         form_errors['name'] = 'Please fill the name of the category'
-    if not form_errors:
-        g.db.execute(
-                'update categories set name = ?'
-                ' where name = ?',
-                (new_name, category_name)
+        return (
+                json.dumps(form_errors),
+                400,
+                {'Content-type': 'application/json'}
                 )
-        g.db.commit()
-        flash('Category modified')
-    cursor = g.db.execute(
-            'select id, title, date_posted, content, cat_name'
-            ' from articles where cat_name = ? order by date_posted',
-            (category_name,)
+    cat_check = g.db.execute(
+            'select name from categories where name = ?',
+            (new_name,),
+            ).fetchone()
+    if cat_check:
+        form_errors['duplicate'] = True
+        return (
+                json.dumps(form_errors),
+                409,
+                {'Content-type': 'application/json'}
+                )
+    g.db.execute(
+            'update categories set name = ?'
+            ' where name = ?',
+            (new_name, category_name)
             )
-    articles = [
-            prepare_article_excerpt(article)
-            for article in cursor.fetchall()
-            ]
-    return render_template(
-            'category_articles.html',
-            category=category_name,
-            articles=articles,
-            form_errors=form_errors,
-            logged_in=session.get('logged_in')
+    g.db.execute(
+            'update articles set cat_name = ?'
+            ' where cat_name = ?',
+            (new_name, category_name)
             )
+    g.db.commit()
+    return (
+            json.dumps({
+                'new_location': url_for('view_category', category_name=new_name)
+                }),
+            200,
+            {'Content-type': 'application/json'}
+            )
+
 
 
 if __name__ == '__main__':

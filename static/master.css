@@ -1,4 +1,4 @@
-body, div {
+body, div, input {
     margin: 0;
     padding: 0;
 }
@@ -31,6 +31,10 @@ a.hidden_link, a.hidden_link:visited {
 
 a.hidden_link:hover {
     color: #008fff;
+}
+
+a.form_button:visited, a.form_button:hover {
+    color: #fff;
 }
 
 /* page */
@@ -95,12 +99,16 @@ article.grid_element {
 }
 
 .form_button {
-    padding: 5px 10px;
-    border: none;
+    padding: 10px;
+    border: 1px solid #008fff;
     background-color: #008fff;
     color: #fff;
-    font-size: 16px;
-    cursor: pointerr
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.inline_button {
+    margin-left: 5px;
 }
 
 .input_container {
@@ -129,3 +137,6 @@ textarea {
     color: #f00;
 }
 
+.inline_input_container {
+    font-size: 20px;
+}
