@@ -351,9 +351,14 @@ def edit_article(article_id):
         article_detail = prepare_article_full(
                 article
                 )
+    cursor = g.db.execute('select name from categories')
+    categories = []
+    for category_row in cursor.fetchmany():
+        categories.append(category_row[0])
     return render_template(
             'article_edition.html',
             article=article_detail,
+            categories=categories,
             form_errors=form_errors,
             editing=True,
             logged_in=session.get('logged_in')
