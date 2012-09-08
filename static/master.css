@@ -48,14 +48,14 @@ a.form_button:visited, a.form_button:hover {
 
 header {
     float: left;
-    width: 25%;
+    width: 20%;
     color: #777;
     font-size: 14px;
 }
 
 #content {
     float: right;
-    width: 75%;
+    width: 80%;
 }
 
 #inner_header, #inner_content {
@@ -76,11 +76,15 @@ ul.menu_list {
     list-style-type: none;
 }
 
-article.grid_element {
+div.grid_element {
     float: left;
     width: 50%;
     margin: 0;
     padding: 0;
+}
+
+article.grid_element {
+    padding: 0 10px;
 }
 
 .flush {
@@ -97,11 +101,13 @@ article.grid_element {
     border: 1px solid #777;
     background-color: #eee;
     font-family: Monaco, monospace;
+    font-size: 14px;
     overflow: scroll;
 }
 
 .inline_code {
     font-family: Monaco, monospace;
+    font-size: 14px;
 }
 
 /* form */
