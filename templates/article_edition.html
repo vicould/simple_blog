@@ -6,6 +6,7 @@
 {% endblock %}
 
 {% block page_content %}
+<div id="message_holder"></div>
 {% if editing %}
 <h2>Edit article</h2>
 {% else %}
@@ -42,6 +43,9 @@
   <div class="field_block">
     <div class="input_container">
       <input type="submit" value="Save" class="form_button">
+      {% if editing %}
+      <a id="delete_button" href="#" class="form_button">Delete</a>
+      {% endif %}
     </div>
   </div>
 </form>

@@ -296,7 +296,7 @@ def view_article(article_id):
                 )
 
 
-@app.route('/entries/<int:article_id>/edit/', methods=['GET', 'POST'])
+@app.route('/entries/<int:article_id>/edit/', methods=['GET', 'POST', 'DELETE'])
 def edit_article(article_id):
     """View to edit an article"""
     if not session.get('logged_in'):
@@ -309,6 +309,14 @@ def edit_article(article_id):
     if not article:
         # no matching article in the db, 404
         abort(404)
+    if request.method == 'DELETE':
+        g.db.execute('DELETE FROM articles where id = ?', (article_id,))
+        g.db.commit()
+        return (
+                json.dumps({'new_location': '/'}),
+                200,
+                {'Content-type': 'application/json'}
+                )
     form_errors = {}
     if request.method == 'POST':
         title = request.form.get('title', None)

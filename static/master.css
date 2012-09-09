@@ -162,8 +162,12 @@ textarea {
     padding: 0;
 }
 
-.form_message {
+.error_message {
     color: #f00;
+}
+
+#message_holder {
+    display: none;
 }
 
 .inline_input_container {
@@ -171,5 +175,10 @@ textarea {
 }
 
 .interface_button {
-    font-family: sans-serif;
+    font-family: Verdana, sans-serif;
 }
+
+.form_button {
+    font-family: Verdana, sans-serif;
+}
+

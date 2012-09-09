@@ -30,12 +30,12 @@ function sendCategory(event, categoryInput) {
                     link.textContent = 'page';
                     newLocationMessageHolder.appendChild(link);
                 } else {
-                    var oldMessages = categoryInput.parentNode.getElementsByClassName('form_message');
+                    var oldMessages = categoryInput.parentNode.getElementsByClassName('error_message');
                     for (var i = 0; i < oldMessages.length; i++) {
                         categoryInput.parentNode.removeChild(oldMessages[i]);
                     }
                     var errorContainer = document.createElement('span');
-                    errorContainer.className = 'form_message';
+                    errorContainer.className = 'error_message';
                     if (request.status === 409) {
                         errorContainer.textContent = 'Name already taken';
                     } else if (request.status === 400) {
