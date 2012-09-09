@@ -1,3 +1,7 @@
+String.prototype.endsWith = function(suffix) {
+    return this.indexOf(suffix, this.length - suffix.length) !== -1;
+};
+
 function sendCategory(event, categoryInput) {
     event.preventDefault();
     var categoryName = categoryInput.value;
@@ -21,11 +25,18 @@ function sendCategory(event, categoryInput) {
                     newLocationMessageHolder.innerHTML = '';
 
                     var message = document.createElement('span');
-                    message.textContent = 'This page moved ';
+                    message.textContent = 'The page changed. You should go ';
                     newLocationMessageHolder.appendChild(message);
 
                     var link = document.createElement('a');
-                    link.setAttribute('href', JSON.parse(request.responseText).new_location);
+                    if (document.URL.toString().endsWith('categories/')) {
+                        // only reloads the page if we are listing all the categories
+                        link.setAttribute('href', '');
+                    } else {
+                        // points to the new location of the category otherwise
+                        link.setAttribute('href', JSON.parse(request.responseText).new_location);
+                    }
+
                     link.textContent = 'here';
                     newLocationMessageHolder.appendChild(link);
                 } else {
@@ -46,7 +57,7 @@ function sendCategory(event, categoryInput) {
                 }
             }
         });
-        request.open('POST', 'edit/');
+        request.open('POST', '/categories/' + categoryInput.getAttribute('value') + '/edit/');
         request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
         request.send('name=' + encodeURIComponent(categoryName));
     }
