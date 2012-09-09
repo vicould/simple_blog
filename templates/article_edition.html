@@ -1,7 +1,9 @@
 {% extends "home.html" %}
 
 {% block extra_title %}New article{% endblock %}
-{% block page_head %}{% endblock %}
+{% block page_head %}
+<script src="/static/article_edition.js" type="text/javascript" charset="utf-8"></script>
+{% endblock %}
 
 {% block page_content %}
 {% if editing %}
@@ -24,8 +26,8 @@
   </div>
   <div class="field_block">
     <label for="category" class="form_label">Category</label>
-    <div class="input_container">
-      <select name="category">
+    <div id="category_input_container" class="input_container">
+      <select id="category_input" name="category">
         {% for category in categories %}
         {% if category == article.category %}
         <option value="{{ category }}" selected>{{ category }}</option>
@@ -34,6 +36,7 @@
         {% endif %}
         {% endfor %}
       </select>
+      <a href="#" id="new_category_button" class="obvious_link interface_button">+</a>
     </div>
   </div>
   <div class="field_block">

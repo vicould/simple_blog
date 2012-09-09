@@ -25,6 +25,12 @@ a.visible_link, a.visible_link:visited {
     color: #008fff;
 }
 
+a.obvious_link, a.obvious_link:visited {
+    color: #008fff;
+    font-size: 22px;
+    font-weight: 900;
+}
+
 a.hidden_link, a.hidden_link:visited {
     color: #fff;
 }
@@ -162,4 +168,8 @@ textarea {
 
 .inline_input_container {
     font-size: 20px;
+}
+
+.interface_button {
+    font-family: sans-serif;
 }

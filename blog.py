@@ -177,18 +177,11 @@ def save_category(category_name):
     Saves a category to the database.
     Raises an exception if the category failed to be saved.
     """
-    try:
-        g.db.execute(
-                'insert into categories (\'name\') values (?)',
-                (category_name,)
-                )
-        g.db.commit()
-    except sqlite3.IntegrityError:
-        error_message = 'Category {} already present in the database'.format(
-                category_name
-                )
-        app.logger.error(error_message)
-        raise DatabaseException(error_message)
+    g.db.execute(
+            'insert into categories (\'name\') values (?)',
+            (category_name,)
+            )
+    g.db.commit()
 
     category_instance = g.db.execute(
             'select name from categories where name = ?',
@@ -210,15 +203,6 @@ def save_article(title, content, category_name):
     Saves an article in the database, and returns its id.
     Raises an exception if the article failed to be saved.
     """
-    category_instance = g.db.execute(
-            'select name from categories where name = ?',
-            (category_name,)
-            ).fetchone()
-    if not category_instance:
-        # saves the category in the database, raises an exception if there is
-        # an issue
-        save_category(category_name)
-
     date_posted = datetime.datetime.utcnow().strftime(
             '%Y-%m-%d %H:%M:%S'
             )
@@ -258,7 +242,15 @@ def add_article():
         if not title:
             form_errors['title'] = 'Please fill the title'
         if not category:
-            form_errors['category'] = 'Please fill the category'
+            category = request.form.get('new_category', None)
+            try:
+                save_category(category)
+            except sqlite3.IntegrityError:
+                # the category is already present in the db, nothing to change
+                # then
+                pass
+            if not category:
+                form_errors['category'] = 'Please fill the category'
         if not content:
             form_errors['content'] = 'Please write your article!'
         if not form_errors:
@@ -325,7 +317,15 @@ def edit_article(article_id):
         if not title:
             form_errors['title'] = 'Please fill the title'
         if not category:
-            form_errors['category'] = 'Please fill the category'
+            category = request.form.get('new_category', None)
+            try:
+                save_category(category)
+            except sqlite3.IntegrityError:
+                # the category is already present in the db, nothing to change
+                # then
+                pass
+            if not category:
+                form_errors['category'] = 'Please fill the category'
         if not content:
             form_errors['content'] = 'Please write your article!'
         if not form_errors:
@@ -403,6 +403,8 @@ def add_category():
                 return redirect(url_for('list_categories'))
             except DatabaseException as exc:
                 flash(exc.message)
+            except sqlite3.IntegrityError:
+                form_errors['name'] = 'Name already taken'
     return render_template(
             'category_edition.html',
             form_errors=form_errors,
