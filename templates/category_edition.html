@@ -7,6 +7,9 @@
 <h2>New category</h2>
 <form action="{{ url_for('add_category') }}" method="post" accept-charset="utf-8">
   <div class="field_block">
+    {% if form_errors.name %}
+    <div class="error_message">{{ form_errors.name }}</div>
+    {% endif %}
     <label for="name" class="form_label">Name</label>
     <div class="input_container">
       <input type="text" name="name" class="text_input" value="">  

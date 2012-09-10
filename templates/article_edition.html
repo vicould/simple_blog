@@ -13,18 +13,27 @@
 {% endif %}
 <form action="" method="post" accept-charset="utf-8">
   <div class="field_block">
+    {% if form_errors.title %}
+    <div class="error_message">{{ form_errors.title }}</div>
+    {% endif %}
     <label for="title" class="form_label">Title</label>
     <div class="input_container">
       <input type="text" name="title" class="text_input" value="{{ article.title }}">  
     </div>
   </div>
   <div class="field_block">
+    {% if form_errors.content %}
+    <div class="error_message">{{ form_errors.content }}</div>
+    {% endif %}
     <label for="content" class="form_label">Content</label>
     <div class="input_container">
       <textarea rows="15" cols="50" name="content" class="text_input">{{ article.content }}</textarea>
     </div>
   </div>
   <div class="field_block">
+    {% if form_errors.category %}
+    <div class="error_message">{{ form_errors.category }}</div>
+    {% endif %}
     <label for="category" class="form_label">Category</label>
     <div id="category_input_container" class="input_container">
       <select id="category_input" name="category">
