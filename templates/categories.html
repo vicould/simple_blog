@@ -13,7 +13,9 @@
   <div class="category_container">
     <div class="category_title">
       {% if logged_in %}
-      <h2 id="{{ category }}"><a href="{{ url_for('view_category', category_name=category) }}">Category <span class="category_name">{{ category }}</span></a> <a href="#" title="Edit category name" class="hidden_link category_edition">edit</a></h2>
+      <h2 id="{{ category }}">
+        <a href="{{ url_for('view_category', category_name=category) }}">Category <span class="category_name">{{ category }}</span></a> <a href="#" title="Edit category name" class="hidden_link category_edition">edit</a> {% if not categories[category] %}<a href="#" title="Delete category" class="hidden_link category_deletion">delete</a>{% endif %}
+      </h2>
       {% else %}
       <h2><a href="{{ url_for('view_category', category_name=category) }}">Category {{ category }}</a></h2>
       {% endif %}
@@ -38,8 +40,8 @@
       {% endfor %}
     </div>
   </div>
-  <div class="flush">
-    {% endfor %}
-  </div>
-  {% endblock %}
+  <div class="flush"></div>
+  {% endfor %}
+</div>
+{% endblock %}
 

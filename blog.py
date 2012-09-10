@@ -448,36 +448,53 @@ def view_category(category_name):
             )
 
 
-@app.route('/categories/<category_name>/edit/', methods=['POST'])
+@app.route('/categories/<category_name>/edit/', methods=['POST', 'DELETE'])
 def edit_category(category_name):
     """View to edit a specific category"""
     if not session.get('logged_in'):
         abort(401)
+    category = g.db.execute(
+            'select name from categories where name = ?',
+            (category_name,)
+            ).fetchone()
+    if request.method == 'DELETE':
+        if not category:
+            abort(404)
+        else:
+            g.db.execute(
+                    'delete from categories where name = ?',
+                    (category_name,)
+                    )
+            g.db.commit()
+            return (
+                    json.dumps({'new_location': '/'}),
+                    200,
+                    {'Content-type': 'application/json'}
+                    )
     form_errors = {}
     new_name = request.form.get('name', '')
     if new_name == '':
+        # bad request, no name
         form_errors['name'] = 'Please fill the name of the category'
         return (
                 json.dumps(form_errors),
                 400,
                 {'Content-type': 'application/json'}
                 )
-    cat_check = g.db.execute(
-            'select name from categories where name = ?',
-            (new_name,),
-            ).fetchone()
-    if cat_check:
+    if category:
         form_errors['duplicate'] = True
         return (
                 json.dumps(form_errors),
                 409,
                 {'Content-type': 'application/json'}
                 )
+    # changes the name of the category
     g.db.execute(
             'update categories set name = ?'
             ' where name = ?',
             (new_name, category_name)
             )
+    # reflects the changes on the articles
     g.db.execute(
             'update articles set cat_name = ?'
             ' where cat_name = ?',

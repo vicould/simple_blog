@@ -2,8 +2,47 @@ String.prototype.endsWith = function(suffix) {
     return this.indexOf(suffix, this.length - suffix.length) !== -1;
 };
 
+function deleteCategory(event) {
+    event.preventDefault();
+    var messageHolder = document.getElementById('message_holder');
+    messageHolder.innerHTML = '';
+
+    var categoryName = event.target.parentNode.id;
+    var request = new XMLHttpRequest();
+    request.addEventListener('readystatechange', function(event) {
+        if (request.readyState === 4) {
+            if (request.status === 200) {
+                    var message = document.createElement('span');
+                    message.textContent = 'The page changed. You should go ';
+                    messageHolder.appendChild(message);
+                    messageHolder.style.setProperty('display', 'block');
+
+                    var link = document.createElement('a');
+                    if (document.URL.toString().endsWith('categories/')) {
+                        // only reloads the page if we are listing all the categories
+                        link.setAttribute('href', '');
+                    } else {
+                        // site root otherwise
+                        link.setAttribute('href', '/');
+                    }
+
+                    link.textContent = 'here';
+                    messageHolder.appendChild(link);
+
+                    var categoryContainer = document.getElementById(categoryName).parentNode.parentNode;
+                    categoryContainer.parentNode.removeChild(categoryContainer);
+            } else {
+            }
+        }
+    });
+    request.open('DELETE', '/categories/' + categoryName + '/edit/');
+    request.send();
+}
+
 function sendCategory(event, categoryInput) {
     event.preventDefault();
+    var messageHolder = document.getElementById('message_holder');
+    messageHolder.innerHTML = '';
     var categoryName = categoryInput.value;
     if (categoryName !== '') {
         var request = new XMLHttpRequest();
@@ -15,14 +54,6 @@ function sendCategory(event, categoryInput) {
                     title.id = categoryName;
                     title.getElementsByTagName('span')[0].textContent = categoryName;
                     categoryInput.parentNode.parentNode.removeChild(categoryInput.parentNode);
-                    var newLocationMessageHolder = document.getElementById('new_location');
-                    if (!newLocationMessageHolder) {
-                        newLocationMessageHolder = document.createElement('div');
-                        newLocationMessageHolder.id = 'new_location';
-                        var innerContent = document.getElementById('inner_content');
-                        innerContent.insertBefore(newLocationMessageHolder, innerContent.firstChild);
-                    }
-                    newLocationMessageHolder.innerHTML = '';
 
                     var message = document.createElement('span');
                     message.textContent = 'The page changed. You should go ';
@@ -106,6 +137,10 @@ function initialize() {
     var categoryEditors = document.getElementsByClassName('category_edition');
     for (var i = 0; i < categoryEditors.length; i++) {
         categoryEditors[i].addEventListener('click', showCategoryEditor);
+    }
+    var categoryRemovers = document.getElementsByClassName('category_deletion');
+    for (var j = 0; j < categoryRemovers.length; j++) {
+        categoryRemovers[j].addEventListener('click', deleteCategory);
     }
 }
 

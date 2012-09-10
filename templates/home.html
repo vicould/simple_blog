@@ -26,6 +26,7 @@
   </header>
   <div id="content">
     <div id="inner_content">
+      <div id="message_holder"></div>
       {% block page_content %}
       <div class="articles">
         {% for article in articles %}
@@ -45,6 +46,7 @@
             </div>
           </article>
         </div>
+        {{ loop.cycle('', '<div class="flush"></div>')|safe  }}
         {% endfor %}
       </div>
       {% endblock %}
