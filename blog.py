@@ -18,7 +18,7 @@ import datetime
 import json
 import sqlite3
 
-from blog_exceptions import DatabaseException
+from simple_blog.blog_exceptions import DatabaseException
 
 # configuration
 DATABASE = 'entries.db'
