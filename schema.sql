@@ -5,7 +5,7 @@ create table categories (
 
 drop table if exists articles;
 create table articles (
-    id integer primary key autoincrement,
+    slug text primary key,
     title text not null,
     date_posted text not null,
     content text not null,

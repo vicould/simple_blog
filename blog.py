@@ -16,6 +16,7 @@ import bcrypt
 from contextlib import closing
 import datetime
 import json
+import slugify
 import sqlite3
 
 from simple_blog.blog_exceptions import DatabaseException
@@ -87,7 +88,7 @@ def page_not_found(error):
 def list_articles():
     """Basic root view, showing all the articles for the blog"""
     cursor = g.db.execute(
-            'select id, title, date_posted, content, cat_name from articles'
+            'select slug, title, date_posted, content, cat_name from articles'
             ' order by date_posted desc'
             )
     articles = [
@@ -144,7 +145,7 @@ def prepare_article_excerpt(article_instance):
     The article is truncated.
     """
     return {
-            'id': article_instance[0],
+            'slug': article_instance[0],
             'title': article_instance[1],
             'date_posted': article_instance[2],
             'readable_date': datetime.datetime.strptime(
@@ -161,7 +162,7 @@ def prepare_article_full(article_instance):
     details for use in the templates as full article.
     """
     return {
-            'id': article_instance[0],
+            'slug': article_instance[0],
             'title': article_instance[1],
             'date_posted': article_instance[2],
             'readable_date': datetime.datetime.strptime(
@@ -200,21 +201,22 @@ def save_category(category_name):
 
 def save_article(title, content, category_name):
     """
-    Saves an article in the database, and returns its id.
+    Saves an article in the database, and returns its slug.
     Raises an exception if the article failed to be saved.
     """
     date_posted = datetime.datetime.utcnow().strftime(
             '%Y-%m-%d %H:%M:%S'
             )
+    slug = slugify.slugify(title)
     g.db.execute(
             'insert into articles'
-            ' (title, content, cat_name, date_posted)'
-            ' values (?, ?, ?, ?)',
-            (title, content, category_name, date_posted)
+            ' (slug, title, content, cat_name, date_posted)'
+            ' values (?, ?, ?, ?, ?)',
+            (slug, title, content, category_name, date_posted)
             )
     g.db.commit()
     article_instance = g.db.execute(
-            'select id from articles where title = ?',
+            'select slug from articles where title = ?',
             (title,)
             ).fetchone()
     if not article_instance:
@@ -255,8 +257,15 @@ def add_article():
             form_errors['content'] = 'Please write your article!'
         if not form_errors:
             try:
-                article_id = save_article(title, content, category)
-                return redirect(url_for('view_article', article_id=article_id))
+                article_slug = save_article(title, content, category)
+                return redirect(url_for(
+                    'view_article',
+                    article_slug=article_slug,
+                    ))
+            except sqlite3.IntegrityError:
+                form_errors['title'] = (
+                        'An article with a similar title already exists'
+                        )
             except DatabaseException as exc:
                 flash(exc.message)
         article = {
@@ -275,13 +284,13 @@ def add_article():
             )
 
 
-@app.route('/entries/<int:article_id>/')
-def view_article(article_id):
+@app.route('/entries/<article_slug>/')
+def view_article(article_slug):
     """View to read an article"""
     cursor = g.db.execute(
-            'select id, title, date_posted, content, cat_name'
-            ' from articles where id = ?',
-            (article_id,)
+            'select slug, title, date_posted, content, cat_name'
+            ' from articles where slug = ?',
+            (article_slug,)
             )
     article = cursor.fetchone()
     if not article:
@@ -296,21 +305,21 @@ def view_article(article_id):
                 )
 
 
-@app.route('/entries/<int:article_id>/edit/', methods=['GET', 'POST', 'DELETE'])
-def edit_article(article_id):
+@app.route('/entries/<article_slug>/edit/', methods=['GET', 'POST', 'DELETE'])
+def edit_article(article_slug):
     """View to edit an article"""
     if not session.get('logged_in'):
         abort(401)
     cursor = g.db.execute(
-            'select date_posted from articles where id = ?',
-            (article_id,)
+            'select date_posted from articles where slug = ?',
+            (article_slug,)
             )
     article = cursor.fetchone()
     if not article:
         # no matching article in the db, 404
         abort(404)
     if request.method == 'DELETE':
-        g.db.execute('DELETE FROM articles where id = ?', (article_id,))
+        g.db.execute('DELETE FROM articles where slug = ?', (article_slug,))
         g.db.commit()
         return (
                 json.dumps({'new_location': '/'}),
@@ -337,21 +346,30 @@ def edit_article(article_id):
         if not content:
             form_errors['content'] = 'Please write your article!'
         if not form_errors:
-            g.db.execute(
-                    'update articles set title = ?, content = ?, cat_name = ?'
-                    ' where id = ?',
-                    (title, content, category, article_id)
-                    )
-            g.db.commit()
-            return redirect(url_for('view_article', article_id=article_id))
+            try:
+                new_slug = slugify.slugify(title)
+                g.db.execute(
+                        'update articles set slug = ?, title = ?, content = ?,'
+                        ' cat_name = ? where slug = ?',
+                        (new_slug, title, content, category, article_slug)
+                        )
+                g.db.commit()
+                return redirect(url_for(
+                    'view_article',
+                    article_slug=new_slug
+                    ))
+            except sqlite3.IntegrityError:
+                form_errors['title'] = (
+                        'An article with a similar title already exists'
+                        )
         article_detail = prepare_article_full(
-                (article_id, title, article[0], content, category)
+                (article_slug, title, article[0], content, category)
                 )
     else:
         cursor = g.db.execute(
-                'select id, title, date_posted, content, cat_name'
-                ' from articles where id = ?',
-                (article_id,)
+                'select slug, title, date_posted, content, cat_name'
+                ' from articles where slug = ?',
+                (article_slug,)
                 )
         article = cursor.fetchone()
         article_detail = prepare_article_full(
@@ -380,7 +398,7 @@ def list_categories():
             category[0]: [
                 prepare_article_excerpt(article)
                 for article in g.db.execute(
-                    'select id, title, date_posted, content, cat_name'
+                    'select slug, title, date_posted, content, cat_name'
                     ' from articles where cat_name = ?'
                     ' order by date_posted desc',
                     (category[0],)
@@ -430,7 +448,7 @@ def view_category(category_name):
     if not category_cursor.fetchall():
         abort(404)
     cursor = g.db.execute(
-            'select id, title, date_posted, content, cat_name'
+            'select slug, title, date_posted, content, cat_name'
             ' from articles where cat_name = ? '
             'order by date_posted desc',
             (category_name,)
