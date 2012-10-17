@@ -1,9 +1,6 @@
 Flask==0.9
 Jinja2==2.6
 Werkzeug==0.8.3
-logilab-astng==0.24.0
-logilab-common==0.58.1
 py-bcrypt==0.2
-pylint==0.25.2
 slugify==0.0.1
 wsgiref==0.1.2
