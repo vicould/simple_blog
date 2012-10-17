@@ -538,7 +538,7 @@ def make_external(url):
 
 @app.route('/feed/')
 def recent_feed():
-    feed = AtomFeed('Recent Articles',
+    feed = AtomFeed('Vicould',
                     feed_url=request.url, url=request.url_root)
     articles = g.db.execute(
                     'select slug, title, date_posted, content, cat_name'
