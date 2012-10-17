@@ -18,6 +18,8 @@ import datetime
 import json
 import slugify
 import sqlite3
+from urlparse import urljoin
+from werkzeug.contrib.atom import AtomFeed
 
 from simple_blog.blog_exceptions import DatabaseException
 
@@ -527,6 +529,33 @@ def edit_category(category_name):
             {'Content-type': 'application/json'}
             )
 
+
+
+
+def make_external(url):
+    return urljoin(request.url_root, url)
+
+
+@app.route('/feed/')
+def recent_feed():
+    feed = AtomFeed('Recent Articles',
+                    feed_url=request.url, url=request.url_root)
+    articles = g.db.execute(
+                    'select slug, title, date_posted, content, cat_name'
+                    ' from articles order by date_posted desc'
+                    )
+    for article in articles:
+        date_published = datetime.datetime.strptime(
+                article[2], '%Y-%m-%d %H:%M:%S'
+                )
+        feed.add(
+                article[1], unicode(article[3]),
+                content_type='html',
+                url=make_external(article[0]),
+                updated=date_published,
+                published=date_published
+                )
+    return feed.get_response()
 
 
 if __name__ == '__main__':
