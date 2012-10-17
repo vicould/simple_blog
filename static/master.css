@@ -4,7 +4,138 @@ body, div, input {
 }
 
 body {
-    font-family: Georgia, serif;
+    font: normal 100% Georgia, serif;
+}
+
+/* page */
+#page_container {
+    width: 90%;
+    margin: 5% auto 0 auto;
+}
+
+header {
+    float: left;
+    width: 20%;
+    color: #777;
+    font-size: 0.875em;
+}
+
+#content {
+    float: right;
+    width: 80%;
+}
+
+div.grid_element {
+    float: left;
+    width: 50%;
+}
+
+div.grid_element article {
+    padding-right: 5%;
+}
+
+.flush {
+    clear: both;
+}
+
+/* content of the page */
+h1, h2, h3 {
+    margin: 0;
+}
+
+h1 {
+    font-size: 2em;
+    font-family: Verdana, sans-serif;
+}
+
+ul.menu_list {
+    padding: 0;
+    list-style-type: none;
+}
+
+.articles_container {
+    margin-top: 10px;
+}
+
+.code {
+    margin: 5px 0;
+    padding: 10px 5px;
+    border: 1px solid #777;
+    background-color: #eee;
+    font-family: Monaco, monospace;
+    font-size: 0.875em;
+    overflow: scroll;
+}
+
+.inline_code {
+    font-family: Monaco, monospace;
+    font-size: 0.875em;
+}
+
+/* form */
+.field_block {
+    padding: 10px 0;
+}
+
+.form_label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 1.25em;
+}
+
+.form_button {
+    padding: 10px;
+    border: 1px solid #008fff;
+    background-color: #008fff;
+    color: #fff;
+    font-size: 1.25em;
+    cursor: pointer;
+}
+
+.inline_button {
+    margin-left: 5px;
+}
+
+.input_container {
+    margin-left: 10px;
+}
+
+input, textarea {
+    border: 1px solid #aaa;
+    font-size: 1.25em;
+}
+
+select, option {
+    font-size: 1.25em;
+}
+
+.text_input {
+    padding: 10px;
+}
+
+textarea {
+    margin: 0;
+    padding: 0;
+}
+
+.error_message {
+    color: #f00;
+}
+
+#message_holder {
+    display: none;
+}
+
+.inline_input_container {
+    font-size: 1.25em;
+}
+
+.interface_button {
+    font-family: Verdana, sans-serif;
+}
+
+.form_button {
+    font-family: Verdana, sans-serif;
 }
 
 /* links */
@@ -27,7 +158,7 @@ a.visible_link, a.visible_link:visited {
 
 a.obvious_link, a.obvious_link:visited {
     color: #008fff;
-    font-size: 22px;
+    font-size: 1.375em;
     font-weight: 900;
 }
 
@@ -43,142 +174,29 @@ a.form_button:visited, a.form_button:hover {
     color: #fff;
 }
 
-/* page */
+/* flow */
 
-#page_container {
-    min-width: 800px;
-    width: 80%;
-    max-width: 1200px;
-    margin: 40px auto 0 auto;
+@media screen and (max-width: 1000px) {
+    header, #content {
+        float: none;
+        width: 100%;
+    }
 }
 
-header {
-    float: left;
-    width: 20%;
-    color: #777;
-    font-size: 14px;
+@media screen and (max-width: 600px) {
+    div.grid_element {
+        float: none;
+        width: 100%;
+    }
+
+    div.grid_element article {
+        padding-right: 0;
+    }
 }
 
-#content {
-    float: right;
-    width: 80%;
-}
-
-#inner_header, #inner_content {
-    padding: 0 20px;
-}
-
-h1, h2, h3 {
-    margin: 0;
-}
-
-h1 {
-    font-size: 36px;
-    font-family: Verdana, sans-serif;
-}
-
-ul.menu_list {
-    padding: 0;
-    list-style-type: none;
-}
-
-div.grid_element {
-    float: left;
-    width: 50%;
-    margin: 0;
-    padding: 0;
-}
-
-article.grid_element {
-    padding: 0 10px;
-}
-
-.flush {
-    clear: both;
-}
-
-.articles_container {
-    margin-top: 10px;
-}
-
-.code {
-    margin: 5px 0;
-    padding: 10px 5px;
-    border: 1px solid #777;
-    background-color: #eee;
-    font-family: Monaco, monospace;
-    font-size: 14px;
-    overflow: scroll;
-}
-
-.inline_code {
-    font-family: Monaco, monospace;
-    font-size: 14px;
-}
-
-/* form */
-.field_block {
-    padding: 10px 0;
-}
-
-.form_label {
-    display: block;
-    margin-bottom: 5px;
-    font-size: 20px;
-}
-
-.form_button {
-    padding: 10px;
-    border: 1px solid #008fff;
-    background-color: #008fff;
-    color: #fff;
-    font-size: 20px;
-    cursor: pointer;
-}
-
-.inline_button {
-    margin-left: 5px;
-}
-
-.input_container {
-    margin-left: 10px;
-}
-
-input, textarea {
-    border: 1px solid #aaa;
-    font-size: 20px;
-}
-
-select, option {
-    font-size: 20px;
-}
-
-.text_input {
-    padding: 10px;
-}
-
-textarea {
-    margin: 0;
-    padding: 0;
-}
-
-.error_message {
-    color: #f00;
-}
-
-#message_holder {
-    display: none;
-}
-
-.inline_input_container {
-    font-size: 20px;
-}
-
-.interface_button {
-    font-family: Verdana, sans-serif;
-}
-
-.form_button {
-    font-family: Verdana, sans-serif;
+@media screen and (min-width: 1400px) {
+    div.grid_element {
+        width: 33%;
+    }
 }
 
